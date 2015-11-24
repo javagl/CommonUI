@@ -1,7 +1,7 @@
 /*
- * www.javagl.de - Flow
+ * www.javagl.de - Common - UI
  *
- * Copyright (c) 2012-2014 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2013-2015 Marco Hutter - http://www.javagl.de
  * 
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
