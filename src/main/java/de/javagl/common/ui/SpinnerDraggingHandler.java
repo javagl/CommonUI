@@ -136,8 +136,8 @@ class SpinnerDraggingHandler extends MouseAdapter
         // TODO This value is somewhat arbitrary...
         int i = (int)Math.ceil(d / 250.0);
         currentFactor = Math.max(1, i);
-        System.out.println("For "+value+" with step size "+
-            stepSize+" use factor "+currentFactor);
+        //System.out.println("For "+value+" with step size "+
+        //    stepSize+" use factor "+currentFactor);
     }
     
     @Override
