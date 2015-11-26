@@ -180,7 +180,7 @@ public final class SortOrderTableHeaderCellRenderer implements TableCellRenderer
         for (int i=0; i<sortKeys.size(); i++)
         {
             SortKey sortKey = sortKeys.get(i);
-            if (sortKey.getColumn() == column)
+            if (sortKey.getColumn() == table.convertColumnIndexToModel(column))
             {
                 return sortKey.getSortOrder();                        
             }
@@ -203,7 +203,7 @@ public final class SortOrderTableHeaderCellRenderer implements TableCellRenderer
         for (int i=0; i<sortKeys.size(); i++)
         {
             SortKey sortKey = sortKeys.get(i);
-            if (sortKey.getColumn() == column)
+            if (sortKey.getColumn() == table.convertColumnIndexToModel(column))
             {
                 return i;                        
             }
