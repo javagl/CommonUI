@@ -67,7 +67,7 @@ public class TreeModelFilters
      * @param string The string that must be contained in the node string
      * @return The new {@link TreeModelFilter}
      */
-    public static TreeModelFilter deepContainsStringIgnoreCase(
+    public static TreeModelFilter containsLeafContainingStringIgnoreCase(
         final String string)
     {
         return new TreeModelFilter()
@@ -97,10 +97,51 @@ public class TreeModelFilters
             public String toString()
             {
                 return "TreeModelFilter[" +
-                	"containsLeafContainingStringIgnoreCase("+string+")]";
+                    "containsLeafContainingStringIgnoreCase("+string+")]";
             }
         };        
     }
+    
+    /**
+     * Returns a {@link TreeModelFilter} that is accepting all nodes
+     * whose string representation contains the given string (ignoring 
+     * upper/lower case), and all ancestors of these nodes 
+     * 
+     * @param string The string that must be contained in the node string
+     * @return The new {@link TreeModelFilter}
+     */
+    public static TreeModelFilter containsStringIgnoreCase(
+        final String string)
+    {
+        return new TreeModelFilter()
+        {
+            @Override
+            public boolean acceptNode(TreeModel treeModel, TreeNode node)
+            {
+                if (String.valueOf(node).toLowerCase().contains(
+                    string.toLowerCase())) 
+                {
+                    return true;
+                }
+                for (int i=0; i<node.getChildCount(); i++)
+                {
+                    if (acceptNode(treeModel, node.getChildAt(i)))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public String toString()
+            {
+                return "TreeModelFilter[" +
+                    "containsLeafContainingStringIgnoreCase("+string+")]";
+            }
+        };        
+    }
+    
     
     /**
      * Private constructor to prevent instantiation

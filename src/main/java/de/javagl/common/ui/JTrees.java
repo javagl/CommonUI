@@ -26,12 +26,16 @@
  */
 package de.javagl.common.ui;
 
+import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import javax.swing.JTree;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -42,7 +46,10 @@ import javax.swing.tree.TreePath;
 public class JTrees
 {
     /**
-     * Expand all rows of the given tree
+     * Expand all rows of the given tree. <br>
+     * <br>
+     * Note that for large trees, {@link #expandAllFixedHeight(JTree)} may
+     * be significantly faster.
      * 
      * @param tree The tree
      */
@@ -55,6 +62,116 @@ public class JTrees
             r++;
         }
     }
+    
+    /**
+     * Expand all rows of the given tree, assuming a fixed height for
+     * the rows.
+     * 
+     * @param tree The tree
+     */
+    public static void expandAllFixedHeight(JTree tree)
+    {
+        // Determine a suitable row height for the tree, based on the 
+        // size of the component that is used for rendering the root 
+        TreeCellRenderer cellRenderer = tree.getCellRenderer();
+        Component treeCellRendererComponent = 
+            cellRenderer.getTreeCellRendererComponent(
+                tree, tree.getModel().getRoot(), false, false, false, 1, false);
+        int rowHeight = treeCellRendererComponent.getPreferredSize().height + 2;
+        tree.setRowHeight(rowHeight);
+        
+        // Temporarily remove all listeners that would otherwise
+        // be flooded with TreeExpansionEvents
+        List<TreeExpansionListener> expansionListeners =
+            Arrays.asList(tree.getTreeExpansionListeners());
+        for (TreeExpansionListener expansionListener : expansionListeners)
+        {
+            tree.removeTreeExpansionListener(expansionListener);
+        }
+        
+        // Recursively expand all nodes of the tree
+        TreePath rootPath = new TreePath(tree.getModel().getRoot());
+        expandAllRecursively(tree, rootPath);
+        
+        // Restore the listeners that the tree originally had
+        for (TreeExpansionListener expansionListener : expansionListeners)
+        {
+            tree.addTreeExpansionListener(expansionListener);
+        }
+        
+        // Trigger an update for the TreeExpansionListeners
+        tree.collapsePath(rootPath);
+        tree.expandPath(rootPath);
+    }
+    
+    /**
+     * Recursively expand all paths in the given tree, starting with the
+     * given path
+     *  
+     * @param tree The tree
+     * @param treePath The current tree path
+     */
+    private static void expandAllRecursively(JTree tree, TreePath treePath)
+    {
+        TreeModel model = tree.getModel();
+        Object lastPathComponent = treePath.getLastPathComponent();
+        int childCount = model.getChildCount(lastPathComponent);
+        if (childCount == 0)
+        {
+            return;
+        }
+        tree.expandPath(treePath);
+        for (int i=0; i<childCount; i++)
+        {
+            Object child = model.getChild(lastPathComponent, i);
+            int grandChildCount = model.getChildCount(child);
+            if (grandChildCount > 0)
+            {
+                class LocalTreePath extends TreePath
+                {
+                    private static final long serialVersionUID = 0;
+                    public LocalTreePath(
+                        TreePath parent, Object lastPathComponent)
+                    {
+                        super(parent, lastPathComponent);
+                    }
+                }
+                TreePath nextTreePath = new LocalTreePath(treePath, child);
+                expandAllRecursively(tree, nextTreePath);
+            }
+        }
+    }
+    
+    /**
+     * Count the number of nodes in the given tree model
+     * 
+     * @param treeModel The tree model
+     * @return The number of nodes
+     */
+    public static int countNodes(TreeModel treeModel)
+    {
+        return countNodes(treeModel, treeModel.getRoot());
+    }
+    
+    /**
+     * Recursively count the number of nodes in the given tree model,
+     * starting with the given node
+     * 
+     * @param treeModel The tree model
+     * @param node The node
+     * @return The number of nodes
+     */
+    private static int countNodes(TreeModel treeModel, Object node)
+    {
+        int sum = 1;
+        int n = treeModel.getChildCount(node);
+        for (int i=0; i<n; i++)
+        {
+            sum += countNodes(treeModel, treeModel.getChild(node, i));
+        }
+        return sum;
+    }
+    
     
     /**
      * Returns the first node with the given user object in the tree with

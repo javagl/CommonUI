@@ -27,13 +27,12 @@
 
 package de.javagl.common.ui.tree.filtered;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
@@ -77,7 +76,7 @@ public class FilteredTreeModel implements TreeModel
     /**
      * The root node of this model
      */
-    private TreeNode root;
+    private FilteredTreeNode root;
 
     /**
      * The mapping from nodes of this model to the corresponding
@@ -95,7 +94,7 @@ public class FilteredTreeModel implements TreeModel
      * The listeners that are attached to this tree model
      */
     private final List<TreeModelListener> treeModelListeners;
-
+    
     /**
      * Creates a new filtered tree model for the given delegate
      * 
@@ -112,6 +111,29 @@ public class FilteredTreeModel implements TreeModel
         
         init();
     }
+    
+    /**
+     * Returns the delegate node for the given filtered node
+     * 
+     * @param filteredTreeNode The filtered node
+     * @return The delegate node
+     */
+    DefaultMutableTreeNode getDelegateNode(FilteredTreeNode filteredTreeNode)
+    {
+        return (DefaultMutableTreeNode)thisToDelegate.get(filteredTreeNode);
+    }
+    
+    /**
+     * Returns the filtered node for the given delegate node
+     * 
+     * @param treeNode The delegate node
+     * @return The filtered node
+     */
+    FilteredTreeNode getFilteredNode(Object treeNode)
+    {
+        return (FilteredTreeNode)delegateToThis.get(treeNode);
+    }
+    
     
     /**
      * Initialize this tree model
@@ -140,124 +162,20 @@ public class FilteredTreeModel implements TreeModel
      * @param delegateNode The delegate node
      * @return The filtered version of the node
      */
-    private TreeNode createNode(final TreeNode delegateNode)
+    private FilteredTreeNode createNode(final TreeNode delegateNode)
     {
-        final List<TreeNode> childList = new ArrayList<TreeNode>();
-        Enumeration<?> delegateChildren = delegateNode.children();
-        while (delegateChildren.hasMoreElements())
-        {
-            Object object = delegateChildren.nextElement();
-            TreeNode delegateChild = (TreeNode) object;
-            TreeNode child = createNode(delegateChild);
-            childList.add(child);
-        }
-
-        TreeNode node = new DefaultMutableTreeNode()
-        {
-            /**
-             * Serial UID
-             */
-            private static final long serialVersionUID = -8766897308902463690L;
-
-            @Override
-            public boolean isLeaf()
-            {
-                return delegateNode.isLeaf();
-            }
-            
-            @Override
-            public Object getUserObject()
-            {
-                DefaultMutableTreeNode delegateNode = 
-                    (DefaultMutableTreeNode)thisToDelegate.get(this);
-                return delegateNode.getUserObject();
-            }
-            
-            @Override
-            public void setUserObject(Object userObject)
-            {
-                DefaultMutableTreeNode delegateNode = 
-                    (DefaultMutableTreeNode)thisToDelegate.get(this);
-                delegateNode.setUserObject(userObject);
-            }
-
-            @Override
-            public Object[] getUserObjectPath()
-            {
-                DefaultMutableTreeNode delegateNode = 
-                    (DefaultMutableTreeNode)thisToDelegate.get(this);
-                Object delegateResult[] = delegateNode.getUserObjectPath();
-                
-                Object result[] = new Object[delegateResult.length];
-                for (int i=0; i<delegateResult.length; i++)
-                {
-                    result[i] = delegateToThis.get(delegateResult[i]);
-                }
-                return super.getUserObjectPath();
-            }
-            
-            @Override
-            public TreeNode getParent()
-            {
-                return delegateToThis.get(delegateNode.getParent());
-            }
-
-            @Override
-            public int getIndex(TreeNode node)
-            {
-                return getFiltered(childList).indexOf(node);
-            }
-
-            @Override
-            public int getChildCount()
-            {
-                return getFiltered(childList).size();
-            }
-
-            @Override
-            public TreeNode getChildAt(int childIndex)
-            {
-                return getFiltered(childList).get(childIndex);
-            }
-
-            @Override
-            public boolean getAllowsChildren()
-            {
-                return delegateNode.getAllowsChildren();
-            }
-
-            @Override
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-            public Enumeration children()
-            {
-                return new Vector(getFiltered(childList)).elements();
-            }
-
-            @Override
-            public String toString()
-            {
-                return delegateNode.toString();
-            }
-
-            @Override
-            public boolean equals(Object object)
-            {
-                if (object == this)
-                {
-                    return true;
-                }
-                return delegateNode.equals(object);
-            }
-
-            @Override
-            public int hashCode()
-            {
-                return delegateNode.hashCode();
-            }
-
-        };
+        FilteredTreeNode node = new FilteredTreeNode(this, delegateNode);
         delegateToThis.put(delegateNode, node);
         thisToDelegate.put(node, delegateNode);
+
+        @SuppressWarnings("unchecked")
+        Enumeration<? extends TreeNode> delegateChildren = 
+        delegateNode.children();
+        while (delegateChildren.hasMoreElements())
+        {
+            TreeNode delegateChild = delegateChildren.nextElement();
+            createNode(delegateChild);
+        }
         return node;
     }
 
@@ -275,27 +193,28 @@ public class FilteredTreeModel implements TreeModel
         {
             this.filter = TreeModelFilters.acceptingAll();
         }
+        if (root != null)
+        {
+            root.notifyFilterChanged();
+        }
         fireTreeStructureChanged(this, new TreeNode[] { root }, null, null);
     }
     
+    
     /**
-     * Returns the result of filtering the given list of nodes 
-     * with the current {@link TreeModelFilter}
+     * Returns the stream of nodes that results from filtering the given
+     * stream with the current {@link TreeModelFilter} and mapping them
+     * to the filtered nodes
      * 
-     * @param list The input list
-     * @return The filtered list
+     * @param delegateNodes The delegate nodes
+     * @return The stream of filtered nodes 
      */
-    private List<TreeNode> getFiltered(List<TreeNode> list)
+    Stream<TreeNode> getFiltered(Stream<TreeNode> delegateNodes)
     {
-        List<TreeNode> result = new ArrayList<TreeNode>();
-        for (TreeNode node : list)
-        {
-            if (filter.acceptNode(this, node))
-            {
-                result.add(node);
-            }
-        }
-        return result;
+        return delegateNodes
+            .filter(delegateNode -> filter.acceptNode(this, delegateNode))
+            .map(delegateNode -> delegateToThis.get(delegateNode))
+            .filter(filteredNode -> filteredNode != null);
     }
 
     /**
@@ -316,6 +235,8 @@ public class FilteredTreeModel implements TreeModel
         }
     }    
 
+    
+    
     //=== Implementation of the TreeModel interface ===========================
     
     @Override
@@ -370,5 +291,7 @@ public class FilteredTreeModel implements TreeModel
     {
         treeModelListeners.remove(l);
     }
+
+
 
 }

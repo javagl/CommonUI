@@ -159,9 +159,6 @@ public class FilteredTree
     }
     
     
-    
-    
-    
     /**
      * Set the filter of the model for the tree. All nodes of the
      * filtered tree will be expanded. If the given filter is 
@@ -185,13 +182,14 @@ public class FilteredTree
         {
             tree.removeTreeExpansionListener(expandedPathsListener);
             treeModel.setFilter(filter);
-            int row = 0;
-            while (row < tree.getRowCount())
-            {
-                tree.expandRow(row);
-                row++;
-            }
+            
+            //long before = System.nanoTime();
+            JTrees.expandAllFixedHeight(tree);
+            //long after = System.nanoTime();
+            //System.out.println("Expanding rows took "+(after-before)/1e6);
+            
             tree.addTreeExpansionListener(expandedPathsListener);
         }
     }
+    
 }
