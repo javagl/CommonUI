@@ -74,6 +74,11 @@ public class LocationBasedActionTest
      */
     private static class ExampleAction extends LocationBasedAction
     {
+        /**
+         * Serial UID
+         */
+        private static final long serialVersionUID = -2164410856183613845L;
+
         @Override
         protected void prepareShow(Component component, int x, int y)
         {

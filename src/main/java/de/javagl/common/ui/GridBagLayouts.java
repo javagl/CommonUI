@@ -69,7 +69,7 @@ public class GridBagLayouts
         {
             Component component = components[i];
             constraints.gridx = i;
-            if (i == extraSpaceColumn)
+            if (i != extraSpaceColumn)
             {
                 constraints.weightx = 0.0;
             }
