@@ -1,8 +1,13 @@
 package de.javagl.common.ui.tree.checkbox.test;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -52,6 +57,36 @@ public class CheckBoxTreeTest
             }
         });
 
+        
+        JPanel panel = new JPanel(new FlowLayout());
+        JButton selectButton = new JButton("Select child 1");
+        selectButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                Object root = tree.getModel().getRoot();
+                Object child = tree.getModel().getChild(root, 1);
+                tree.setSelectionState(child, State.SELECTED);
+            }
+        });
+        panel.add(selectButton);
+
+        JButton unselectButton = new JButton("Unselect child 1");
+        unselectButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                Object root = tree.getModel().getRoot();
+                Object child = tree.getModel().getChild(root, 1);
+                tree.setSelectionState(child, State.UNSELECTED);
+            }
+        });
+        panel.add(unselectButton);
+        
+        f.getContentPane().add(panel, BorderLayout.SOUTH);
+        
         f.setSize(600, 600);
         f.setLocationRelativeTo(null);
         f.setVisible(true);

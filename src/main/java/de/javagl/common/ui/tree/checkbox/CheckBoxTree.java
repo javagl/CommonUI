@@ -38,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -146,7 +147,11 @@ public class CheckBoxTree extends JTree
             }
         });
         
-        setSelectionStateOfAll(State.UNSELECTED);
+        List<Object> allNodes = JTrees.getAllNodes(getModel());
+        for (Object node : allNodes)
+        {
+            selectionStates.put(node, State.UNSELECTED);
+        }
     }
 
     /**
@@ -221,6 +226,7 @@ public class CheckBoxTree extends JTree
      */
     private void setSelectionStateOfAll(State state)
     {
+        Objects.requireNonNull(state, "The state may not be null");
         List<Object> allNodes = JTrees.getAllNodes(getModel());
         for (Object node : allNodes)
         {
@@ -236,16 +242,27 @@ public class CheckBoxTree extends JTree
      */
     public void setSelectionState(Object node, State state)
     {
-        if (state == null)
+        setSelectionState(node, state, true);
+    }
+    
+    /**
+     * Set the selection state of the given node
+     * 
+     * @param node The node
+     * @param state The state
+     * @param propagate Whether the state change should be propagated
+     * to its children and ancestor nodes
+     */
+    private void setSelectionState(Object node, State state, boolean propagate)
+    {
+        Objects.requireNonNull(state, "The state may not be null");
+        Objects.requireNonNull(node, "The node may not be null");
+        State oldState = selectionStates.put(node, state);
+        if (!state.equals(oldState))
         {
-            selectionStates.remove(node);
-        }
-        else
-        {
-            State oldState = selectionStates.put(node, state);
-            if (oldState != null)
+            fireStateChanged(node, oldState, state);
+            if (propagate)
             {
-                fireStateChanged(node, oldState, state);
                 updateSelection(node);
             }
         }
@@ -312,34 +329,16 @@ public class CheckBoxTree extends JTree
         if (state == State.SELECTED)
         {
             setSelectionState(node, State.UNSELECTED);
-            List<Object> descendants = 
-                JTrees.getAllDescendants(getModel(), node);
-            for (Object descendant : descendants)
-            {
-                setSelectionState(descendant, State.UNSELECTED);
-            }
             updateSelection(node);
         }
         else if (state == State.UNSELECTED)
         {
             setSelectionState(node, State.SELECTED);
-            List<Object> descendants = 
-                JTrees.getAllDescendants(getModel(), node);
-            for (Object descendant : descendants)
-            {
-                setSelectionState(descendant, State.SELECTED);
-            }
             updateSelection(node);
         }
         else
         {
             setSelectionState(node, State.SELECTED);
-            List<Object> descendants = 
-                JTrees.getAllDescendants(getModel(), node);
-            for (Object descendant : descendants)
-            {
-                setSelectionState(descendant, State.SELECTED);
-            }
             updateSelection(node);
         }
         
@@ -353,16 +352,23 @@ public class CheckBoxTree extends JTree
      */
     private void updateSelection(Object node)
     {
-        Object parent = JTrees.getParent(getModel(), node);
-        if (parent == null)
+        State newState = getSelectionState(node);
+        List<Object> descendants = 
+            JTrees.getAllDescendants(getModel(), node);
+        for (Object descendant : descendants)
         {
-            return;
+            setSelectionState(descendant, newState, false);
         }
-        List<Object> descendantsOfParent = 
-            JTrees.getAllDescendants(getModel(), parent);
-        State stateForParent = computeState(descendantsOfParent);
-        setSelectionState(parent, stateForParent);
-        updateSelection(parent);
+        
+        Object ancestor = JTrees.getParent(getModel(), node);
+        while (ancestor != null)
+        {
+            List<Object> childrenOfAncestor = 
+                JTrees.getChildren(getModel(), ancestor);
+            State stateForAncestor = computeState(childrenOfAncestor);
+            setSelectionState(ancestor, stateForAncestor, false);
+            ancestor = JTrees.getParent(getModel(), ancestor);
+        }
     }
 
     /**

@@ -234,7 +234,7 @@ public class JTrees
      * @param node The node
      * @return The children
      */
-    private static List<Object> getChildren(TreeModel treeModel, Object node)
+    public static List<Object> getChildren(TreeModel treeModel, Object node)
     {
         List<Object> children = new ArrayList<Object>();
         int n = treeModel.getChildCount(node);
