@@ -10,11 +10,12 @@ and are not intended to be used by third party libraries.
 
 Version 0.0.3-SNAPSHOT:
 
+* Minimized state changes and notifications in `CheckBoxTree`
 * ...
 
 Version 0.0.2:
 
-* Bugfix in `GridBagLayouts#addRow`: Extra space was not property distributed
+* Bugfix in `GridBagLayouts#addRow`: Extra space was not properly distributed
 * Refactored `FilteredTree` for higher performance
 
      
