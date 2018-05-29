@@ -11,7 +11,9 @@ and are not intended to be used by third party libraries.
 Version 0.0.3-SNAPSHOT:
 
 * Minimized state changes and notifications in `CheckBoxTree`
-* ...
+* Extended `JTrees` class with additional methods
+* Added `GenericTreeCellRenderer`, e.g. for for buttons in tree cells
+* Added `AspectLayout`
 
 Version 0.0.2:
 
