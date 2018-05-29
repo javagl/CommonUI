@@ -26,12 +26,22 @@
  */
 package de.javagl.common.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.EventObject;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -39,6 +49,8 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+
+import de.javagl.common.ui.tree.renderer.GenericTreeCellRenderer;
 
 /**
  * Utility methods related to trees
@@ -139,6 +151,22 @@ public class JTrees
                 TreePath nextTreePath = new LocalTreePath(treePath, child);
                 expandAllRecursively(tree, nextTreePath);
             }
+        }
+    }
+    
+    /**
+     * Collapse all rows of the given tree
+     * 
+     * @param tree The tree
+     * @param omitRoot Whether the root node should not be collapsed
+     */
+    public static void collapseAll(JTree tree, boolean omitRoot)
+    {
+        int rows = tree.getRowCount();
+        int limit = (omitRoot ? 1 : 0);
+        for (int i = rows - 1; i >= limit; i--)
+        {
+            tree.collapseRow(i);
         }
     }
     
@@ -343,6 +371,65 @@ public class JTrees
     }
     
     /**
+     * Returns a list containing all leaf nodes from the given tree model.
+     * These are the nodes that have 0 children.
+     * 
+     * @param treeModel The tree model
+     * @return The leaf nodes
+     */
+    public static List<Object> getLeafNodes(TreeModel treeModel)
+    {
+        return getLeafNodes(treeModel, treeModel.getRoot());
+    }
+    
+    /**
+     * Returns a list containing all leaf nodes from the given tree model
+     * that are descendants of the given node. These are the nodes that 
+     * have 0 children.
+     * 
+     * @param treeModel The tree model
+     * @param node The node to start the search from
+     * @return The leaf nodes
+     */
+    public static List<Object> getLeafNodes(TreeModel treeModel, Object node)
+    {
+        List<Object> leafNodes = new ArrayList<Object>();
+        getLeafNodes(treeModel, node, leafNodes);
+        return leafNodes;
+    }
+    
+    /**
+     * Recursively collect all leaf nodes in the given tree model that are
+     * descendants of the given node.
+     * 
+     * @param treeModel The tree model
+     * @param node The node to start the search from
+     * @param leafNodes The leaf nodes
+     */
+    private static void getLeafNodes(
+        TreeModel treeModel, Object node, Collection<Object> leafNodes)
+    {
+        if (node == null)
+        {
+            return;
+        }
+        int childCount = treeModel.getChildCount(node);
+        if (childCount == 0)
+        {
+            leafNodes.add(node);
+        }
+        else
+        {
+            for (int i = 0; i < childCount; i++)
+            {
+                Object child = treeModel.getChild(node, i);
+                getLeafNodes(treeModel, child, leafNodes);
+            }
+        }
+    }    
+    
+    
+    /**
      * Returns the tree path from the given node to the root in the
      * given tree model
      * 
@@ -370,11 +457,29 @@ public class JTrees
         return treePath;
     }
     
+    /**
+     * Compute the list of all tree paths in the given tree that are currently
+     * expanded
+     * 
+     * @param tree The tree
+     * @return The expanded paths
+     */
+    public static List<TreePath> computeExpandedPaths(JTree tree)
+    {
+        List<TreePath> treePaths = new ArrayList<TreePath>();
+        int rows = tree.getRowCount();
+        for (int i = 0; i < rows; i++)
+        {
+            TreePath treePath = tree.getPathForRow(i);
+            treePaths.add(treePath);
+        }
+        return treePaths;
+    }
+    
     
     /**
      * Translates one TreePath to a new TreeModel. This methods assumes 
-     * DefaultMutableTreeNodes, and identifies the path based on the
-     * user objects.
+     * DefaultMutableTreeNodes.
      * 
      * @param newTreeModel The new tree model
      * @param oldPath The old tree path
@@ -384,6 +489,24 @@ public class JTrees
     public static TreePath translatePath(
         TreeModel newTreeModel, TreePath oldPath)
     {
+        return translatePath(newTreeModel, oldPath, Objects::equals);
+    }
+    
+    /**
+     * Translates one TreePath to a new TreeModel. This methods assumes 
+     * DefaultMutableTreeNodes, and identifies the path based on the
+     * equality of user objects using the given equality predicate.
+     * 
+     * @param newTreeModel The new tree model
+     * @param oldPath The old tree path
+     * @param equality The equality predicate 
+     * @return The new tree path, or <code>null</code> if there is no
+     * corresponding path in the new tree model
+     */
+    public static TreePath translatePath(
+        TreeModel newTreeModel, TreePath oldPath, 
+        BiPredicate<Object, Object> equality)
+    {
         Object newRoot = newTreeModel.getRoot();
         List<Object> newPath = new ArrayList<Object>();
         newPath.add(newRoot);
@@ -391,11 +514,9 @@ public class JTrees
         for (int i=1; i<oldPath.getPathCount(); i++)
         {
             Object oldElement = oldPath.getPathComponent(i);
-            DefaultMutableTreeNode oldElementNode = 
-                (DefaultMutableTreeNode)oldElement;
-            Object oldUserObject = oldElementNode.getUserObject();
-            
-            Object newElement = getChildWith(newPreviousElement, oldUserObject);
+            Object oldUserObject = getUserObjectFromTreeNode(oldElement);
+            Object newElement = 
+                getChildWith(newPreviousElement, oldUserObject, equality);
             if (newElement == null)
             {
                 return null;
@@ -408,30 +529,175 @@ public class JTrees
     
     
     /**
-     * Returns the child with the given user object in the given tree
-     * node. Assumes DefaultMutableTreeNodes.
+     * Returns the child of the given tree node that has a user object that
+     * is equal to the given one, based on the given equality predicate.
+     * Assumes DefaultMutableTreeNodes.
      * 
      * @param node The node
      * @param userObject The user object
+     * @param equality The equality predicate 
      * @return The child with the given user object, or <code>null</code>
      * if no such child can be found.
      */
-    private static Object getChildWith(Object node, Object userObject)
+    private static Object getChildWith(Object node, Object userObject, 
+        BiPredicate<Object, Object> equality)
     {
         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)node;
         for (int j=0; j<treeNode.getChildCount(); j++)
         {
             TreeNode child = treeNode.getChildAt(j);
-            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)child;
-            Object childUserObject = childNode.getUserObject();
-            if (Objects.equals(userObject, childUserObject))
+            Object childUserObject = getUserObjectFromTreeNode(child);
+            if (equality.test(userObject, childUserObject))
             {
                 return child;
             }
         }
         return null;
     }
+    
+    /**
+     * Returns the user object from the last path component of the given tree 
+     * path. If the given path is <code>null</code>, then <code>null</code>
+     * is returned. If the last path component is not a DefaultMutableTreeNode,
+     * then <code>null</code> is returned.
+     * 
+     * @param treePath The tree path
+     * @return The user object
+     */
+    public static Object getUserObjectFromTreePath(TreePath treePath)
+    {
+        if (treePath == null)
+        {
+            return null;
+        }
+        Object lastPathComponent = treePath.getLastPathComponent();
+        return getUserObjectFromTreeNode(lastPathComponent);
+    }
+    
+    /**
+     * Returns the user object from the given tree node. If the given node 
+     * object is <code>null</code> or not a DefaultMutableTreeNode,
+     * then <code>null</code> is returned.
+     * 
+     * @param nodeObject The node object
+     * @return The user object
+     */
+    public static Object getUserObjectFromTreeNode(Object nodeObject)
+    {
+        if (nodeObject == null)
+        {
+            return null;
+        }
+        if (nodeObject instanceof DefaultMutableTreeNode)
+        {
+            DefaultMutableTreeNode node = 
+                (DefaultMutableTreeNode)nodeObject;
+            Object userObject = node.getUserObject();
+            return userObject;
+        }
+        return null;
+    }
+    
+    /**
+     * Computes the index that the given node has in its parent node. 
+     * Returns -1 if the given node does not have a parent, or the
+     * node is not a DefaultMutableTreeNode.
+     * 
+     * @param nodeObject The node
+     * @return The index of the node in its parent
+     */
+    public static int computeIndexInParent(Object nodeObject)
+    {
+        if (nodeObject instanceof DefaultMutableTreeNode)
+        {
+            DefaultMutableTreeNode node = 
+                (DefaultMutableTreeNode)nodeObject;
+            TreeNode parent = node.getParent();
+            if (parent == null)
+            {
+                return -1;
+            }
+            int childCount = parent.getChildCount();
+            for (int i=0; i<childCount; i++)
+            {
+                TreeNode child = parent.getChildAt(i);
+                if (child == nodeObject)
+                {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
         
+    
+    /**
+     * Apply a cell renderer to the given tree that will create cells that
+     * consist of a button and a label, based on 
+     * a {@link GenericTreeCellRenderer}.<br>
+     * <br>
+     * An editor will be installed for the tree, making the buttons 
+     * clickable.<br>
+     * <br>
+     * Some details about the exact layout of the cells are intentionally
+     * not specified. 
+     * 
+     * @param tree The tree
+     * @param buttonFactory The factory that will receive the tree node,
+     * and return the JButton (to which listeners may already have been
+     * attached). If this function returns <code>null</code>, then no
+     * button will be inserted.
+     * @param textFactory The factory that will receive the tree node,
+     * and return the text that should be displayed as the node label.
+     */
+    public static void applyButtonTreeCellRenderer(JTree tree, 
+        Function<Object, JButton> buttonFactory,
+        Function<Object, String> textFactory)
+    {
+        TreeCellRenderer treeCellrenderer = new GenericTreeCellRenderer()
+        {
+            @Override
+            protected void prepare(Object nodeObject, JPanel container)
+            {
+                container.setLayout(new BorderLayout(3, 0));
+                
+                JLabel textLabel = new JLabel();
+                String text = textFactory.apply(nodeObject); 
+                textLabel.setText(text);
+                container.add(textLabel, BorderLayout.CENTER);
+                
+                JButton button = buttonFactory.apply(nodeObject);
+                if (button != null)
+                {
+                    container.add(button, BorderLayout.WEST);
+                }
+            }
+        };
+        tree.setCellRenderer(treeCellrenderer);
+        tree.setEditable(true);
+        DefaultCellEditor editor = new DefaultCellEditor(new JTextField())
+        {
+            /**
+             * Serial UID 
+             */
+            private static final long serialVersionUID = 1L;
+            
+            @Override
+            public Component getTreeCellEditorComponent(JTree tree, Object value,
+                    boolean selected, boolean expanded, boolean leaf, int row) 
+            {
+                return treeCellrenderer.getTreeCellRendererComponent(
+                    tree, value, selected, expanded, leaf, row, true);
+            }
+            @Override
+            public boolean isCellEditable(EventObject event) 
+            {
+                return true;
+            }
+        };
+        tree.setCellEditor(editor);
+    }
+    
     
     /**
      * Private constructor to prevent instantiation
@@ -441,118 +707,4 @@ public class JTrees
         // Private constructor to prevent instantiation
     }
 
-
-    
-//    /**
-//     * Returns the path from the given node to the root in the
-//     * given tree model
-//     * 
-//     * @param model The tree model
-//     * @param node The node
-//     * @return The path
-//     */
-//    static TreeNode[] getPathToRoot(TreeModel model, TreeNode node) 
-//    {
-//        return getPathToRoot(model, node, 0);
-//    }
-//
-//    /**
-//     * Returns the path from the given node to the root in the
-//     * given tree model
-//     * 
-//     * @param model The tree model
-//     * @param node The node
-//     * @param depth The depth
-//     * @return The path
-//     */
-//    private static TreeNode[] getPathToRoot(
-//        TreeModel model, TreeNode node, int depth)
-//    {
-//        TreeNode resultNodes[];
-//        if(node == null) 
-//        {
-//            if(depth == 0)
-//            {
-//                return null;
-//            }
-//            resultNodes = new TreeNode[depth];
-//        }
-//        else 
-//        {
-//            depth++;
-//            if(node == model.getRoot())
-//            {
-//                resultNodes = new TreeNode[depth];
-//            }
-//            else
-//            {
-//                resultNodes = getPathToRoot(model, node.getParent(), depth);
-//            }    
-//            resultNodes[resultNodes.length - depth] = node;
-//        }
-//        return resultNodes;
-//    }
-//    
-//    /**
-//     * Returns the node with the given user object in the tree that is
-//     * rooted at the given node. Assumes that the user object is stored
-//     * in a DefaultMutableTreeNode, and the tree consists of 
-//     * MutableTreeNodes. Returns <code>null</code> if no matching node
-//     * is found.
-//     * 
-//     * @param node The root node
-//     * @param userObject The user object
-//     * @return The node with the given user object, or <code>null</code>
-//     */
-//    static MutableTreeNode findNode(
-//        Object node, Object userObject)
-//    {
-//        if (node instanceof DefaultMutableTreeNode)
-//        {
-//            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)node;
-//            if (treeNode.getUserObject().equals(userObject))
-//            {
-//                return treeNode;
-//            }
-//        }
-//        if (node instanceof MutableTreeNode)
-//        {
-//            MutableTreeNode treeNode = (MutableTreeNode)node;
-//            for (int i=0; i<treeNode.getChildCount(); i++)
-//            {
-//                TreeNode child = treeNode.getChildAt(i);
-//                MutableTreeNode result = findNode(child, userObject);
-//                if (result != null)
-//                {
-//                    return result;
-//                }
-//            }
-//        }
-//        return null;
-//    }
-//    
-    
-    
-//    /**
-//     * Returns all leaf nodes in the given tree model
-//     * 
-//     * @param treeModel The tree model
-//     * @return All leaf nodes
-//     */
-//    private static List<Object> getLeafNodes(TreeModel treeModel)
-//    {
-//        List<Object> allNodes = 
-//            getAllDescendants(treeModel, treeModel.getRoot());
-//        List<Object> leafNodes = new ArrayList<Object>();
-//        for (Object node : allNodes)
-//        {
-//            int n = treeModel.getChildCount(node);
-//            if (n == 0)
-//            {
-//                leafNodes.add(node);
-//            }
-//        }
-//        return leafNodes;
-//    }
-    
 }
