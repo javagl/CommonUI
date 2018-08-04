@@ -16,7 +16,11 @@ and are not intended to be used by third party libraries.
 
 Version 0.0.4-SNAPSHOT:
 
-* ...
+* Moved the `CloseableTab` into an own package, now containing the 
+  `CloseCallback` interface and related classes as top-level classes
+  that are also used by the newly added `CloseablePanel`
+* Added `AccordionPanel` to combine multiple `CollapsiblePanel` instances
+* Bugfix in `CollapsiblePanel` that prevented expansion animation
 
 Version 0.0.3, 2018-05-29:
 
