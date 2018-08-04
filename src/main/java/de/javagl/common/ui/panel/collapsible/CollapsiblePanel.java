@@ -272,10 +272,10 @@ public class CollapsiblePanel extends JPanel
         double delta = currentHeight - minimizedHeight;
         final int stepSize = (int)Math.ceil(delta / steps);
         
-//        System.out.println("steps "+steps);
-//        System.out.println("currentHeight "+currentHeight);
-//        System.out.println("delta "+delta);
-//        System.out.println("stepSize "+stepSize);
+        //System.out.println("steps " + steps);
+        //System.out.println("currentHeight " + currentHeight);
+        //System.out.println("delta " + delta);
+        //System.out.println("stepSize " + stepSize);
         
         timer = new Timer(delayMS, new ActionListener()
         {
@@ -313,16 +313,22 @@ public class CollapsiblePanel extends JPanel
         double delta = targetHeight - currentHeight;
         final int stepSize = (int)Math.ceil(delta / steps);
         currentHeight = getHeight();
+        
+        //System.out.println("steps " + steps);
+        //System.out.println("currentHeight " + currentHeight);
+        //System.out.println("delta " + delta);
+        //System.out.println("stepSize " + stepSize);
+        
         timer = new Timer(delayMS, new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent e)
             {
+                minimized = false;
                 currentHeight += stepSize;
                 currentHeight = Math.min(currentHeight, targetHeight);
                 if (currentHeight >= targetHeight)
                 {
-                    minimized = false;
                     currentHeight = Integer.MAX_VALUE;
                     timer.stop();
                     timer = null;
