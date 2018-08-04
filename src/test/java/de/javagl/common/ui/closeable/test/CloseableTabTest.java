@@ -1,4 +1,4 @@
-package de.javagl.common.ui.test;
+package de.javagl.common.ui.closeable.test;
 
 import java.awt.Component;
 
@@ -7,8 +7,8 @@ import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
-import de.javagl.common.ui.CloseableTab;
-import de.javagl.common.ui.CloseableTab.CloseCallback;
+import de.javagl.common.ui.closeable.CloseCallback;
+import de.javagl.common.ui.closeable.CloseableTab;
 
 /**
  * Simple integration test for the {@link CloseableTab} 
