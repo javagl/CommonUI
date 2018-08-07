@@ -127,7 +127,7 @@ public class AccordionPanel extends JPanel
         CollapsiblePanel collapsiblePanel = collapsiblePanels.get(component);
         if (collapsiblePanel != null)
         {
-            contentPanel.remove(component);
+            contentPanel.remove(collapsiblePanel);
         }
     }
 
