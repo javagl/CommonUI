@@ -8,13 +8,17 @@ and are not intended to be used by third party libraries.
     <dependency>
         <groupId>de.javagl</groupId>
         <artifactId>common-ui</artifactId>
-        <version>0.0.3</version>
+        <version>0.0.4</version>
     </dependency>
 
 
 # Change log:
 
-Version 0.0.4-SNAPSHOT:
+Version 0.0.5-SNAPSHOT:
+
+* ...
+
+Version 0.0.4, 2018-08-08:
 
 * Moved the `CloseableTab` into an own package, now containing the 
   `CloseCallback` interface and related classes as top-level classes
