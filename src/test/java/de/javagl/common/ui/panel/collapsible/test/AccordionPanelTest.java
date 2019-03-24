@@ -14,6 +14,7 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 
 import de.javagl.common.ui.JSplitPanes;
+import de.javagl.common.ui.closeable.CloseablePanel;
 import de.javagl.common.ui.panel.collapsible.AccordionPanel;
 
 /**
@@ -42,7 +43,16 @@ public class AccordionPanelTest
         AccordionPanel a1 = new AccordionPanel();
         a1.addToAccordion("Some buttons", createExamplePanelB(), true);
         a1.addToAccordion("A text area", createExamplePanelC());
-        a1.addToAccordion("A tree", createExamplePanelA());
+        
+        JPanel tree = createExamplePanelA();
+        JPanel container = new JPanel(new GridLayout(1,1));
+        CloseablePanel p = new CloseablePanel(null, tree, c -> 
+        {
+            a1.removeFromAccordion(container);
+            return true;
+        });
+        container.add(p);
+        a1.addToAccordion("A tree", container);
         
         splitPane.setLeftComponent(a0);
         splitPane.setRightComponent(a1);

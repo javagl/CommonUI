@@ -27,7 +27,9 @@
 package de.javagl.common.ui.panel.collapsible;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BoxLayout;
@@ -114,6 +116,7 @@ public class AccordionPanel extends JPanel
         collapsiblePanel.setMinimized(minimized);
         contentPanel.add(collapsiblePanel);
         collapsiblePanels.put(component, collapsiblePanel);
+        revalidate();
         return collapsiblePanel;
     }
     
@@ -128,6 +131,22 @@ public class AccordionPanel extends JPanel
         if (collapsiblePanel != null)
         {
             contentPanel.remove(collapsiblePanel);
+            collapsiblePanels.remove(component);
+            revalidate();
+        }
+    }
+    
+    /**
+     * Remove all components that have previously been added by calling
+     * {@link #addToAccordion}
+     */
+    public void clearAccordion()
+    {
+        List<JComponent> components = 
+            new ArrayList<JComponent>(collapsiblePanels.keySet());
+        for (JComponent component : components)
+        {
+            removeFromAccordion(component);
         }
     }
 
