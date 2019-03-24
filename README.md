@@ -14,9 +14,14 @@ and are not intended to be used by third party libraries.
 
 # Change log:
 
-Version 0.0.5-SNAPSHOT:
+Version 0.0.6-SNAPSHOT:
 
 * ...
+
+Version 0.0.5, 2019-03-24
+
+* Fixed preferred size handling for `CloseablePanel` without title
+* Added validation and option to clear an `AccordionPanel`
 
 Version 0.0.4, 2018-08-08:
 
