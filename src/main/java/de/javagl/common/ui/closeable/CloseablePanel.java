@@ -31,12 +31,11 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.OverlayLayout;
 
 /**
  * Simple implementation of a panel with a "close" button
@@ -52,6 +51,21 @@ public class CloseablePanel extends JPanel
      * The close button
      */
     private final CloseableContainerButton closeableContainerButton;
+
+    /**
+     * The container for the close button
+     */
+    private final JPanel buttonContainer;
+    
+    /**
+     * The optional title of the panel
+     */
+    private final String title;
+    
+    /**
+     * The content of this panel
+     */
+    private final JComponent content;
 
     /**
      * Create a new instance that shows the given content
@@ -88,6 +102,8 @@ public class CloseablePanel extends JPanel
         {
             throw new NullPointerException("closeCallback is null");
         }
+        this.title = title;
+        this.content = content;
         
         ActionListener closeActionListener = new ActionListener()
         {
@@ -111,32 +127,22 @@ public class CloseablePanel extends JPanel
         
         this.closeableContainerButton = 
             new CloseableContainerButton(closeActionListener);
+        this.buttonContainer = new JPanel(new BorderLayout());
+        JPanel p = new JPanel(new BorderLayout());
+        p.setOpaque(false);
+        p.add(closeableContainerButton, BorderLayout.EAST);
+        buttonContainer.add(p, BorderLayout.NORTH);
+        buttonContainer.setOpaque(false);
         
         if (title == null)
         {
             // This could be done more elegantly with a proper
             // layout manager, but should be OK for now...
-            setLayout(null);
+            setLayout(new OverlayLayout(this));
             add(content);
-            add(closeableContainerButton);
+            add(buttonContainer);
             setComponentZOrder(content, 1);
-            setComponentZOrder(closeableContainerButton, 0);
-            
-            addComponentListener(new ComponentAdapter()
-            {
-                @Override
-                public void componentResized(ComponentEvent e)
-                {
-                    Dimension buttonSize = 
-                        closeableContainerButton.getPreferredSize();
-                    closeableContainerButton.setSize(buttonSize);
-                    closeableContainerButton.setLocation(
-                        getWidth() - buttonSize.width, 0);
-                    
-                    content.setSize(getWidth(), getHeight());
-                    content.setLocation(0, 0);
-                }
-            });
+            setComponentZOrder(buttonContainer, 0);
         }
         else
         {
@@ -149,4 +155,25 @@ public class CloseablePanel extends JPanel
             add(titlePanel, BorderLayout.NORTH);
         }
     }
+    
+    @Override
+    public boolean isOptimizedDrawingEnabled()
+    {
+        return false;
+    }
+    
+    @Override
+    public Dimension getPreferredSize()
+    {
+        if (super.isPreferredSizeSet())
+        {
+            return super.getPreferredSize();
+        }
+        if (title == null)
+        {
+            return content.getPreferredSize();
+        }
+        return super.getPreferredSize();
+    }
 }
+
