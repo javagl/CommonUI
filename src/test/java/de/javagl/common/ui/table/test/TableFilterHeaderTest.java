@@ -9,7 +9,6 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import de.javagl.common.ui.table.CustomizedTableHeader;
-import de.javagl.common.ui.table.GenericTableModel;
 import de.javagl.common.ui.table.MultiColumnRegexFilter;
 
 /**
