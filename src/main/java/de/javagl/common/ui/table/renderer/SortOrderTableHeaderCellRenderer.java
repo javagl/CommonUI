@@ -24,7 +24,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.javagl.common.ui.table;
+package de.javagl.common.ui.table.renderer;
 
 import java.awt.Color;
 import java.awt.Component;

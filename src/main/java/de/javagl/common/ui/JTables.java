@@ -135,6 +135,42 @@ public class JTables
         }
         return modelRows;
     }
+
+    /**
+     * Set a "small" font for the given table and its header
+     * 
+     * @param t The table
+     */
+    public static void setSmallFont(JTable t)
+    {
+        setFont(t, 9.0);
+    }
+    
+    /**
+     * Set a font for the given table and its header that is derived from
+     * its current font, but has the given size
+     * 
+     * @param t The table
+     * @param size The size
+     */
+    public static void setFont(JTable t, double size)
+    {
+        setDerivedFont(t, (float)size);
+    }
+    
+    /**
+     * Set a derived font with the given size for the given
+     * table and its header
+     * 
+     * @param t The table
+     * @param size The font size
+     */
+    private static void setDerivedFont(JTable t, float size)
+    {
+        t.setFont(t.getFont().deriveFont(size));
+        t.getTableHeader().setFont(
+            t.getTableHeader().getFont().deriveFont(size));
+    }
     
 
     /**

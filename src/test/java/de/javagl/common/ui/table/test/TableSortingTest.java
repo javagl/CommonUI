@@ -11,8 +11,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import de.javagl.common.ui.table.SortOrderTableHeaderCellRenderer;
 import de.javagl.common.ui.table.TristateTableRowSorter;
+import de.javagl.common.ui.table.renderer.SortOrderTableHeaderCellRenderer;
 
 /**
  * Simple integration test for the {@link SortOrderTableHeaderCellRenderer}
