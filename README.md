@@ -8,7 +8,7 @@ and are not intended to be used by third party libraries.
     <dependency>
         <groupId>de.javagl</groupId>
         <artifactId>common-ui</artifactId>
-        <version>0.0.4</version>
+        <version>0.0.6</version>
     </dependency>
 
 
