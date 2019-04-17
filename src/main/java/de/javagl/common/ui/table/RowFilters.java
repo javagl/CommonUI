@@ -41,6 +41,9 @@ public class RowFilters
      * <code>null</code>. If they are both <code>null</code>, then
      * the resulting filter will accept all elements.
      * 
+     * @param <M> The model type
+     * @param <I> The index type
+     * 
      * @param filter0 The first filter
      * @param filter1 The second filter
      * @return The result
@@ -73,6 +76,9 @@ public class RowFilters
      * Combine the given filters, using an "or", if they are not 
      * <code>null</code>. If they are both <code>null</code>, then
      * the resulting filter will accept no elements.
+     * 
+     * @param <M> The model type
+     * @param <I> The index type
      * 
      * @param filter0 The first filter
      * @param filter1 The second filter

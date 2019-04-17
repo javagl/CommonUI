@@ -49,7 +49,7 @@ import javax.swing.undo.UndoManager;
  * ...
  * // Later, detach the handler, if desired:
  * undoRedoHandler.detach();
- * <code></pre>
+ * </code></pre>
  */
 public class UndoRedoHandler
 {
