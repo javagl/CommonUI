@@ -14,10 +14,27 @@ and are not intended to be used by third party libraries.
 
 # Change log:
 
-Version 0.0.6-SNAPSHOT:
+Version 0.0.7-SNAPSHOT:
 
 * ...
 
+Version 0.0.6, 2019-04-17
+
+* Added `JOptionPanes` class with a method to show an option pane that does 
+  an input validation
+* Added a `ToggleListSelectionModel` that allows toggling the selection
+  state with clicks
+* Added `GenericTableModel` that builds the table contents with accessor
+  functions
+* Added `CustomizedTableHeader` that allows adding custom components to
+  a table header
+* Added a `MultiColumnRegexFilter` that allows adding text fields to
+  table columns that may be used to filter a table based on regular expressions
+* Added various table cell renderers
+* Added text component utilities: An `UndoRedoHandler` that generically adds
+  undo/redo functionality to text components, and a `SearchableTextComponent`
+  that adds a simple search functionality to text components  
+  
 Version 0.0.5, 2019-03-24
 
 * Fixed preferred size handling for `CloseablePanel` without title
