@@ -16,7 +16,9 @@ and are not intended to be used by third party libraries.
 
 Version 0.0.7-SNAPSHOT:
 
-* ...
+* Bugfix in `FilteredTree`: The expansion state was not properly maintained,
+  which could cause exceptions and caused a wrong expansion state to be 
+  restored when removing the filter
 
 Version 0.0.6, 2019-04-17
 
