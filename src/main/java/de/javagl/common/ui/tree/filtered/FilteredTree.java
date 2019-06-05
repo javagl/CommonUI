@@ -75,6 +75,11 @@ public class FilteredTree
     private final Set<TreePath> expandedPaths = new HashSet<TreePath>();
 
     /**
+     * The set of tree paths that have explicitly been collapsed
+     */
+    private final Set<TreePath> collapsedPaths = new HashSet<TreePath>();
+
+    /**
      * The TreeExpansionListener that maintains the expanded paths.
      * Then the tree is NOT filtered, then this listener will be
      * attached to the tree and store the expansion state of all
@@ -88,12 +93,14 @@ public class FilteredTree
         public void treeExpanded(TreeExpansionEvent event)
         {
             expandedPaths.add(event.getPath());
+            collapsedPaths.remove(event.getPath());
         }
         
         @Override
         public void treeCollapsed(TreeExpansionEvent event)
         {
             expandedPaths.remove(event.getPath());
+            collapsedPaths.add(event.getPath());
         }
     };
 
@@ -170,6 +177,7 @@ public class FilteredTree
      */
     public void setFilter(TreeModelFilter filter)
     {
+        tree.removeTreeExpansionListener(expandedPathsListener);
         if (filter == null)
         {
             treeModel.setFilter(filter);
@@ -177,10 +185,13 @@ public class FilteredTree
             {
                 tree.expandPath(path);
             }
+            for (TreePath path : collapsedPaths)
+            {
+                tree.collapsePath(path);
+            }
         }
         else
         {
-            tree.removeTreeExpansionListener(expandedPathsListener);
             treeModel.setFilter(filter);
             
             //long before = System.nanoTime();
@@ -188,8 +199,8 @@ public class FilteredTree
             //long after = System.nanoTime();
             //System.out.println("Expanding rows took "+(after-before)/1e6);
             
-            tree.addTreeExpansionListener(expandedPathsListener);
         }
+        tree.addTreeExpansionListener(expandedPathsListener);
     }
     
 }
