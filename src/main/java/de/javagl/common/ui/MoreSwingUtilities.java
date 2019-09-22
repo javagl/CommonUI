@@ -236,5 +236,12 @@ public class MoreSwingUtilities
         }
     }
     
+    /**
+     * Private constructor to prevent instantiation
+     */
+    private MoreSwingUtilities()
+    {
+        // Private constructor to prevent instantiation
+    }
     
 }

@@ -14,7 +14,14 @@ and are not intended to be used by third party libraries.
 
 # Change log:
 
-Version 0.0.7-SNAPSHOT:
+Version 0.0.8-SNAPSHOT:
+
+* Added `Actions` class for building `Action` instances
+* Added utility methods for `ListSelectionModel` instances
+* Added actions for table selection in `de.javagl.common.ui.table.TableActions`
+* Added `PropertiesDialog`
+
+Version 0.0.7, 2019-06-05:
 
 * Bugfix in `FilteredTree`: The expansion state was not properly maintained,
   which could cause exceptions and caused a wrong expansion state to be 

@@ -29,7 +29,10 @@ package de.javagl.common.ui;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.swing.JTable;
@@ -136,6 +139,32 @@ public class JTables
         return modelRows;
     }
 
+    /**
+     * Compute the indices of all rows of the given table where the
+     * value in the given column is equal to the value in the given
+     * row 
+     * 
+     * @param table The table
+     * @param row The reference row
+     * @param col The column
+     * @return The row indices
+     */
+    public static List<Integer> computeRowsWithEqualValue(
+        JTable table, int row, int col)
+    {
+        Object referenceValue = table.getValueAt(row, col);
+        List<Integer> selectedRows = new ArrayList<Integer>();
+        for (int r = 0; r < table.getRowCount(); r++)
+        {
+            Object value = table.getValueAt(r, col); 
+            if (Objects.equals(value, referenceValue))
+            {
+                selectedRows.add(r);
+            }
+        }
+        return selectedRows;
+    }
+    
     /**
      * Set a "small" font for the given table and its header
      * 
