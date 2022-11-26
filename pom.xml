@@ -9,7 +9,7 @@
 
     <groupId>de.javagl</groupId>
     <artifactId>common-ui</artifactId>
-    <version>0.0.9</version>
+    <version>0.0.10-SNAPSHOT</version>
 
     <name>common-ui</name>
     <description>Common UI utility classes for the javagl libraries</description>
