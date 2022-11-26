@@ -8,13 +8,21 @@ and are not intended to be used by third party libraries.
     <dependency>
         <groupId>de.javagl</groupId>
         <artifactId>common-ui</artifactId>
-        <version>0.0.6</version>
+        <version>0.0.9</version>
     </dependency>
 
 
 # Change log:
 
-Version 0.0.8-SNAPSHOT:
+Version 0.0.10, SNAPSHOT:
+
+* ...
+
+Version 0.0.9, 2022-11-26
+
+* Added `PropertiesManager'
+
+Version 0.0.8,  2019-09-22:
 
 * Added `Actions` class for building `Action` instances
 * Added utility methods for `ListSelectionModel` instances
