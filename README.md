@@ -20,7 +20,7 @@ Version 0.0.10, SNAPSHOT:
 
 Version 0.0.9, 2022-11-26
 
-* Added `PropertiesManager'
+* Added `PropertiesManager`
 
 Version 0.0.8,  2019-09-22:
 
